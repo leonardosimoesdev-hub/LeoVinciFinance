@@ -1,0 +1,17 @@
+# Build context: raiz do repositório (LeoVinciFinance/)
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY LeoVinciFinance.sln ./
+COPY src/ ./src/
+COPY tests/ ./tests/
+
+RUN dotnet restore src/Consolidacao/Consolidacao.BackgroundServices/Consolidacao.BackgroundServices.csproj
+
+RUN dotnet publish src/Consolidacao/Consolidacao.BackgroundServices/Consolidacao.BackgroundServices.csproj -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+
+ENTRYPOINT ["dotnet", "Consolidacao.BackgroundServices.dll"]

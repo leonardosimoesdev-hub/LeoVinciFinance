@@ -1,0 +1,212 @@
+Global 
+
+Todos os magics numbers devem estar no appsettings
+
+uma credencial de serviço com client-credentials/OAuth2 real
+
+
+Todos os Infrastructure
+
+Remover 
+BuildHost
+
+
+Exemplo
+ PermitLimit = 100,
+ Window = TimeSpan.FromMinutes(1),
+ SegmentsPerWindow = 6,
+ QueueLimit = 0
+
+Todas as magics strings devem ser constantes
+exemplo "saldo é obrigatório e não pode ser zero."
+
+
+IUnitOfWork utilizar de building blocks
+
+IServiceTokenProvider nao duplicar 
+
+em ServiceTokenProvider
+ao inves de invocar Login a cada chamada
+ja armazenar um token valido no appsettings que nao expira e verifica se e valido pelo endpoint ValidarToken em Auth
+
+Codigos duplicado devem ser disponiveis em BuildingBlocks remove duplicidade
+
+Gateway.Api
+
+Criar dois nos para financeiro e relatorios Conforme docs, c4 e prompt mestre
+
+
+em ServiceTokenProvider
+ao inves de invocar Login a cada chamada
+ja armazenar um token valido no appsettings que nao expira e verifica se e valido pelo endpoint ValidarToken em Auth
+
+
+Financeiro.Domain
+
+Uma conta so existe se tiver um cliente
+
+Financeiro.Application.Commands;
+CriarLancamentoCommand nao deve publicar o evento LancamentoCriadoIntegrationEvent isso ser+a tratado pelo dominio ConsolidacaoBackgroundWorker  
+Ver ADR 0003 e C4 Models 
+
+Consolidacao.Domain
+Aqui vc nao seguiu a documentacao ver docs\diagrams\LeoVinciFinance.Domain.drawio e para analisar o dominio
+e docs\architecture\architecture.md 2.4
+
+Consolidacao.Infrastructure
+
+Messaging
+Nºao existe esse evento LancamentoCriadoConsumer
+
+E sim `SaldoDiarioConsolidadoIniciado`, `SaldoDiarioConsolidadoConcluido`, `SaldoDiarioConsolidadoComFalhas` ver c4 model compoment.md
+
+Consolidacao.BackgroundServices
+ConsolidacaoBackfillJob nao deve existir e sim tres jobs
+
+Ver novamente docs\architecture\architecture.md 2.4
+Composto por: `SaldoDiarioConsolidadoHostedService` (agendador diário, D-1), consumidores MassTransit dos três eventos, `SaldoDiarioConsolidadoComFalhasHostedService` (retry de falhas) e `SaldoDiarioConsolidadoGapsHostedService` (recuperação de gaps históricos).
+
+ou seja Job publica evento e depois 
+
+public static class KafkaTopics
+{
+    public const string LancamentoCriado = "leovincifinance.financeiro.lancamento-criado";
+
+    public static string NomeTopico<TEvent>() => typeof(TEvent) switch
+    {
+        var t when t == typeof(LancamentoCriadoIntegrationEvent) => LancamentoCriado,
+        _ => throw new NotSupportedException($"Tipo de evento sem tópico Kafka mapeado: {typeof(TEvent).Name}")
+    };
+
+    /// <summary>
+    /// Particiona por IdConta: garante ordenação dos eventos de uma mesma conta dentro da
+    /// mesma partição (importante para a Consolidação processar em ordem).
+    /// </summary>
+    public static Guid ChaveDeParticionamento(object @event) => @event switch
+    {
+        LancamentoCriadoIntegrationEvent e => e.IdConta ,
+        _ => Guid.Empty
+    };
+
+a chave particionamento pode ser IdConta e DataOnly para os 3 eventos SaldoDiarioConsolidadoIniciado, SaldoDiarioConsolidadoConcluido e SaldoDiarioConsolidadoComFalhas que isso será a sua unicidade...
+
+ver o docs\prompts\Specs.Mestre.md 25 ao 30
+
+Corrigir todos os erros e warnings 
+Conflito de versão detectado para NBomber.Contracts. Instale/referencie NBomber.Contracts 6.0.0 diretamente no projeto RelatoriosLoadTest para resolver esse problema. 
+ RelatoriosLoadTest -> NBomber.Http 6.0.0 -> NBomber.Contracts (>= 6.0.0) 
+ RelatoriosLoadTest -> NBomber 5.8.0 -> NBomber.Contracts (= 5.6.0).
+RelatoriosLoadTest depende de NBomber.Http (>= 5.8.0), mas NBomber.Http 5.8.0 não foi encontrado. NBomber.Http 6.0.0 foi resolvido em vez disso.
+Conflito de versão detectado para Microsoft.EntityFrameworkCore.Relational. Instale/referencie Microsoft.EntityFrameworkCore.Relational 10.0.0 diretamente no projeto Relatorios.Infrastructure para resolver esse problema. 
+ Relatorios.Infrastructure -> Microsoft.EntityFrameworkCore.Design 10.0.0 -> Microsoft.EntityFrameworkCore.Relational (>= 10.0.0) 
+ Relatorios.Infrastructure -> Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 -> Microsoft.EntityFrameworkCore.Relational (>= 9.0.1 && < 10.0.0).
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'Refit' 7.2.1 tem uma crítico vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-3hxg-fxwm-8gf7
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-23rf-6693-g89p
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-37gx-xxp4-5rgx
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-6588-8gv4-xfgh
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8q5v-6pqq-x66h
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-cvvh-rhrc-wg4q
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g8r8-53c2-pm3f
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-mmjf-rqrv-855v
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\BuildingBlocks\BuildingBlocks.WebHost\obj\Debug\net10.0\ref\BuildingBlocks.WebHost.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Relatorios\Relatorios.Application\obj\Debug\net10.0\ref\Relatorios.Application.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Relatorios\Relatorios.Infrastructure\obj\Debug\net10.0\ref\Relatorios.Infrastructure.dll" não pode ser encontrado
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+O pacote 'Refit' 7.2.1 tem uma crítico vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-3hxg-fxwm-8gf7
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\BuildingBlocks\BuildingBlocks.WebHost\obj\Debug\net10.0\ref\BuildingBlocks.WebHost.dll" não pode ser encontrado
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+Conflito de versão detectado para Microsoft.EntityFrameworkCore.Relational. Instale/referencie Microsoft.EntityFrameworkCore.Relational 10.0.0 diretamente no projeto Financeiro.Infrastructure para resolver esse problema. 
+ Financeiro.Infrastructure -> Microsoft.EntityFrameworkCore.Design 10.0.0 -> Microsoft.EntityFrameworkCore.Relational (>= 10.0.0) 
+ Financeiro.Infrastructure -> Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 -> Microsoft.EntityFrameworkCore.Relational (>= 9.0.1 && < 10.0.0).
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-23rf-6693-g89p
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-37gx-xxp4-5rgx
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-6588-8gv4-xfgh
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8q5v-6pqq-x66h
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-cvvh-rhrc-wg4q
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g8r8-53c2-pm3f
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-mmjf-rqrv-855v
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf
+"IUnitOfWork" é uma referência ambígua entre "Financeiro.Application.Abstractions.IUnitOfWork" e "BuildingBlocks.Common.Abstractions.IUnitOfWork"
+"IUnitOfWork" é uma referência ambígua entre "Financeiro.Application.Abstractions.IUnitOfWork" e "BuildingBlocks.Common.Abstractions.IUnitOfWork"
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\BuildingBlocks\BuildingBlocks.WebHost\obj\Debug\net10.0\ref\BuildingBlocks.WebHost.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Financeiro\Financeiro.Api\obj\Debug\net10.0\ref\Financeiro.Api.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Financeiro\Financeiro.Application\obj\Debug\net10.0\ref\Financeiro.Application.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Financeiro\Financeiro.Infrastructure\obj\Debug\net10.0\ref\Financeiro.Infrastructure.dll" não pode ser encontrado
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+O pacote 'SSH.NET' 2024.1.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-q939-rpr3-3284
+Reference assembly C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\BuildingBlocks\BuildingBlocks.WebHost\bin\Debug\net10.0\BuildingBlocks.WebHost.dll could not be found. This is typically caused by build errors in referenced projects.
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\BuildingBlocks\BuildingBlocks.WebHost\obj\Debug\net10.0\ref\BuildingBlocks.WebHost.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Financeiro\Financeiro.Application\obj\Debug\net10.0\ref\Financeiro.Application.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Financeiro\Financeiro.Infrastructure\obj\Debug\net10.0\ref\Financeiro.Infrastructure.dll" não pode ser encontrado
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+Conflito de versão detectado para Microsoft.EntityFrameworkCore.Relational. Instale/referencie Microsoft.EntityFrameworkCore.Relational 10.0.0 diretamente no projeto Consolidacao.Infrastructure para resolver esse problema. 
+ Consolidacao.Infrastructure -> Microsoft.EntityFrameworkCore.Design 10.0.0 -> Microsoft.EntityFrameworkCore.Relational (>= 10.0.0) 
+ Consolidacao.Infrastructure -> Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 -> Microsoft.EntityFrameworkCore.Relational (>= 9.0.1 && < 10.0.0).
+O tipo "RelationalDbContextOptionsBuilder<,>" está definido em um assembly que não é referenciado. Você deve adicionar uma referência ao assembly "Microsoft.EntityFrameworkCore.Relational, Version=9.0.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60".
+‘NpgsqlDbContextOptionsBuilder’ não contém uma definição para "MigrationsHistoryTable" e não foi possível encontrar nenhum método de extensão "MigrationsHistoryTable" que aceite um primeiro argumento do tipo ‘NpgsqlDbContextOptionsBuilder’ (você está se esquecendo de usar uma diretiva ou uma referência de assembly?)
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'Refit' 7.2.1 tem uma crítico vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-3hxg-fxwm-8gf7
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-23rf-6693-g89p
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-37gx-xxp4-5rgx
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-6588-8gv4-xfgh
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8q5v-6pqq-x66h
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-cvvh-rhrc-wg4q
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g8r8-53c2-pm3f
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-mmjf-rqrv-855v
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Consolidacao\Consolidacao.Application\obj\Debug\net10.0\ref\Consolidacao.Application.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Consolidacao\Consolidacao.Infrastructure\obj\Debug\net10.0\ref\Consolidacao.Infrastructure.dll" não pode ser encontrado
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+O pacote 'Refit' 7.2.1 tem uma crítico vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-3hxg-fxwm-8gf7
+O nome de tipo ou namespace "Extensions" não existe no namespace "Microsoft" (você está sem uma referência de assembly?)
+O nome do tipo ou do namespace "ILogger<>" não pode ser encontrado (está faltando uma diretiva using ou uma referência de assembly?)
+O nome do tipo ou do namespace "ILogger<>" não pode ser encontrado (está faltando uma diretiva using ou uma referência de assembly?)
+O nome de tipo ou namespace "Extensions" não existe no namespace "Microsoft" (você está sem uma referência de assembly?)
+O nome do tipo ou do namespace "ILogger<>" não pode ser encontrado (está faltando uma diretiva using ou uma referência de assembly?)
+O nome do tipo ou do namespace "ILogger<>" não pode ser encontrado (está faltando uma diretiva using ou uma referência de assembly?)
+Programa não contém um método "Main" estático adequado para um ponto de entrada
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+Conflito de versão detectado para Microsoft.EntityFrameworkCore.Relational. Instale/referencie Microsoft.EntityFrameworkCore.Relational 10.0.0 diretamente no projeto Auth.Infrastructure para resolver esse problema. 
+ Auth.Infrastructure -> Microsoft.EntityFrameworkCore.Design 10.0.0 -> Microsoft.EntityFrameworkCore.Relational (>= 10.0.0) 
+ Auth.Infrastructure -> Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 -> Microsoft.EntityFrameworkCore.Relational (>= 9.0.1 && < 10.0.0).
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-23rf-6693-g89p
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-37gx-xxp4-5rgx
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-6588-8gv4-xfgh
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8q5v-6pqq-x66h
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-cvvh-rhrc-wg4q
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g8r8-53c2-pm3f
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-mmjf-rqrv-855v
+O pacote 'System.Security.Cryptography.Xml' 9.0.0 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Auth\Auth.Infrastructure\obj\Debug\net10.0\ref\Auth.Infrastructure.dll" não pode ser encontrado
+Arquivo de origem "C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\BuildingBlocks\BuildingBlocks.WebHost\obj\Debug\net10.0\ref\BuildingBlocks.WebHost.dll" não pode ser encontrado
+Reference assembly C:\Projects\LeoVinciFinance\LeoVinciFinance.claude\LeoVinciFinance\src\Auth\Auth.Infrastructure\bin\Debug\net10.0\Auth.Infrastructure.dll could not be found. This is typically caused by build errors in referenced projects.
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+Não é possível encontrar o pacote ArchUnitNET.xUnit. Não existe nenhum pacote com esta ID nas origens: C:\Program Files\dotnet\library-packs, Microsoft Visual Studio Offline Packages, nuget.org
+Versão detectada do pacote fora da restrição de dependência: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4 requer Microsoft.EntityFrameworkCore (>= 9.0.1 && < 10.0.0), mas a versão Microsoft.EntityFrameworkCore 10.0.0 foi resolvida.
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-8785-wc3w-h8q6
+O pacote 'OpenTelemetry.Api' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g94r-2vxg-569j
+O pacote 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.10.0 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-4625-4j76-fww9
+O pacote 'Refit' 7.2.1 tem uma crítico vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-3hxg-fxwm-8gf7

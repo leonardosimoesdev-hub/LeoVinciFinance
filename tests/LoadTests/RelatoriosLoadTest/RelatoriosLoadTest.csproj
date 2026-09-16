@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Versões alinhadas: NBomber 6.2.0 e NBomber.Http 6.1.0 dependem ambos de
+       NBomber.Contracts 6.1.0 — evita o conflito de versão relatado no round 1
+       (NBomber 5.8.0 -> Contracts 5.6.0 x NBomber.Http 5.8.0 inexistente -> Contracts 6.0.0). -->
+  <ItemGroup>
+    <PackageReference Include="NBomber" Version="6.2.0" />
+    <PackageReference Include="NBomber.Http" Version="6.1.0" />
+  </ItemGroup>
+
+</Project>

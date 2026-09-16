@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Relatorios.Application</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ILogger<T> é usado nos handlers (ex.: idempotência do saldo consolidado) — Application
+         depende apenas da abstração de logging (Microsoft.Extensions.Logging.Abstractions),
+         nunca de um provider concreto (Serilog etc.), que fica restrito a Api/Infrastructure. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Relatorios.Domain\Relatorios.Domain.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Common\BuildingBlocks.Common.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Gateway.Api</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    O Gateway é deliberadamente o único componente do sistema sem Domain/Application —
+    é puro roteamento (YARP) + cross-cutting concerns (rate limiting global, CORS,
+    correlation id). Referencia BuildingBlocks.WebHost pelos mesmos motivos dos demais *.Api
+    (observabilidade e correlation id compartilhados).
+  -->
+  <ItemGroup>
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.WebHost\BuildingBlocks.WebHost.csproj" />
+  </ItemGroup>
+
+</Project>

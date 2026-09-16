@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Relatorios.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.4" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.18" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Refit continua referenciado diretamente aqui só pelo atributo [Get] usado na
+         definição de IFinanceiroApiClient. Refit.HttpClientFactory/Polly/cache ficaram
+         encapsulados em BuildingBlocks.ServiceAuth (eliminada a duplicidade — Ajustes round 1). -->
+    <PackageReference Include="Refit" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Relatorios.Application\Relatorios.Application.csproj" />
+    <ProjectReference Include="..\Relatorios.Domain\Relatorios.Domain.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.ServiceAuth\BuildingBlocks.ServiceAuth.csproj" />
+  </ItemGroup>
+
+</Project>

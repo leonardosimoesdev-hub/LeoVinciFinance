@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="FluentAssertions" Version="7.0.0" />
+    <!-- Corrigido: o pacote correto no NuGet é "TngTech.ArchUnitNET.xUnit" (não "ArchUnitNET.xUnit"). -->
+    <PackageReference Include="TngTech.ArchUnitNET.xUnit" Version="0.13.1" />
+  </ItemGroup>
+
+  <!--
+    Referencia TODOS os assemblies de todos os módulos — este é o único projeto de testes que
+    tem essa visão global de propósito (validar que a regra de dependência entre camadas e
+    entre módulos, seção 4 e 38 da Especificação Mestre, não foi violada por nenhum PR).
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Auth\Auth.Domain\Auth.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Auth\Auth.Application\Auth.Application.csproj" />
+    <ProjectReference Include="..\..\src\Auth\Auth.Infrastructure\Auth.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Auth\Auth.Api\Auth.Api.csproj" />
+
+    <ProjectReference Include="..\..\src\Financeiro\Financeiro.Domain\Financeiro.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Financeiro\Financeiro.Application\Financeiro.Application.csproj" />
+    <ProjectReference Include="..\..\src\Financeiro\Financeiro.Infrastructure\Financeiro.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Financeiro\Financeiro.Api\Financeiro.Api.csproj" />
+
+    <ProjectReference Include="..\..\src\Relatorios\Relatorios.Domain\Relatorios.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Relatorios\Relatorios.Application\Relatorios.Application.csproj" />
+    <ProjectReference Include="..\..\src\Relatorios\Relatorios.Infrastructure\Relatorios.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Relatorios\Relatorios.Api\Relatorios.Api.csproj" />
+
+    <ProjectReference Include="..\..\src\Consolidacao\Consolidacao.Domain\Consolidacao.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Consolidacao\Consolidacao.Application\Consolidacao.Application.csproj" />
+    <ProjectReference Include="..\..\src\Consolidacao\Consolidacao.Infrastructure\Consolidacao.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

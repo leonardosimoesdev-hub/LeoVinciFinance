@@ -1,0 +1,242 @@
+version: "3.9"
+
+# LeoVinciFinance — ambiente completo local (Especificação Mestre, seção 31/34/38).
+# Uso:
+#   cp .env.example .env   # preencha os valores
+#   docker compose up --build
+#
+# financeiro-api e relatorios-api sobem com 2 instâncias cada (seção 7/38: "cada API HTTP
+# deverá possuir duas instâncias"), atrás do Gateway (YARP, round-robin). Auth.Api permanece
+# com 1 instância nesta fase (docs/architecture/architecture.md).
+#
+# As migrations de cada módulo devem ser aplicadas manualmente na primeira subida (ver
+# README.md, seção "Primeira execução").
+
+x-financeiro-env: &financeiro-env
+  ASPNETCORE_ENVIRONMENT: Production
+  ConnectionStrings__FinanceiroDb: "Host=postgres;Port=5432;Database=leovincifinance;Username=postgres;Password=postgres;Maximum Pool Size=20"
+  Jwt__Key: "${JWT_KEY:?defina JWT_KEY no arquivo .env — ver README}"
+  Jwt__Issuer: "LeoVinciFinance.Auth"
+  Jwt__Audience: "LeoVinciFinance"
+  Otel__Endpoint: "http://aspire-dashboard:18889"
+
+x-relatorios-env: &relatorios-env
+  ASPNETCORE_ENVIRONMENT: Production
+  ConnectionStrings__RelatoriosDb: "Host=postgres;Port=5432;Database=leovincifinance;Username=postgres;Password=postgres;Maximum Pool Size=20"
+  ConnectionStrings__Redis: "redis:6379"
+  Jwt__Key: "${JWT_KEY:?defina JWT_KEY no arquivo .env — ver README}"
+  Jwt__Issuer: "LeoVinciFinance.Auth"
+  Jwt__Audience: "LeoVinciFinance"
+  Financeiro__BaseUrl: "http://gateway-api:8080"
+  Auth__BaseUrl: "http://auth-api:8080"
+  ServiceAccount__Username: "service-consolidacao"
+  ServiceAccount__Senha: "${SERVICE_ACCOUNT_SENHA:?defina SERVICE_ACCOUNT_SENHA no arquivo .env — ver README}"
+  ServiceAccount__Token: "${SERVICE_ACCOUNT_TOKEN:-}"
+  Otel__Endpoint: "http://aspire-dashboard:18889"
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: leovincifinance-postgres
+    environment:
+      POSTGRES_DB: leovincifinance
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: leovincifinance-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.1
+    container_name: leovincifinance-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.1
+    container_name: leovincifinance-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # Kafdrop: inspeção visual dos tópicos/mensagens em http://localhost:9000 (Ajustes round 1).
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: leovincifinance-kafdrop
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:29092"
+      JVM_OPTS: "-Xms32M -Xmx64M"
+    ports:
+      - "9000:9000"
+
+  # Aspire Dashboard Standalone: recebe traces via OTLP de todos os serviços (seção 31).
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.0
+    container_name: leovincifinance-aspire-dashboard
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "18888:18888"   # UI
+      - "18889:18889"   # OTLP gRPC
+
+  auth-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.auth-api
+    container_name: leovincifinance-auth-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__AuthDb: "Host=postgres;Port=5432;Database=leovincifinance;Username=postgres;Password=postgres"
+      Jwt__Key: "${JWT_KEY:?defina JWT_KEY no arquivo .env — ver README}"
+      Jwt__Issuer: "LeoVinciFinance.Auth"
+      Jwt__Audience: "LeoVinciFinance"
+      Otel__Endpoint: "http://aspire-dashboard:18889"
+    ports:
+      - "5001:8080"
+
+  # --- Financeiro.Api: 2 instâncias atrás do Gateway (seção 7/38) ---
+  financeiro-api-1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.financeiro-api
+    container_name: leovincifinance-financeiro-api-1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: *financeiro-env
+    ports:
+      - "5002:8080"
+
+  financeiro-api-2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.financeiro-api
+    container_name: leovincifinance-financeiro-api-2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: *financeiro-env
+    ports:
+      - "5012:8080"
+
+  # --- Relatorios.Api: 2 instâncias atrás do Gateway (seção 7/38) ---
+  relatorios-api-1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.relatorios-api
+    container_name: leovincifinance-relatorios-api-1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-api:
+        condition: service_started
+    environment: *relatorios-env
+    ports:
+      - "5003:8080"
+
+  relatorios-api-2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.relatorios-api
+    container_name: leovincifinance-relatorios-api-2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-api:
+        condition: service_started
+    environment: *relatorios-env
+    ports:
+      - "5013:8080"
+
+  # Ponto único de entrada para clientes externos e para os próprios serviços internos
+  # (Relatorios/Consolidacao chamam Financeiro através do Gateway, nunca direto num nó
+  # específico — assim o round-robin/health check do YARP também vale para tráfego interno).
+  gateway-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway-api
+    container_name: leovincifinance-gateway-api
+    depends_on:
+      - auth-api
+      - financeiro-api-1
+      - financeiro-api-2
+      - relatorios-api-1
+      - relatorios-api-2
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Otel__Endpoint: "http://aspire-dashboard:18889"
+    ports:
+      - "5000:8080"
+
+  consolidacao-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.consolidacao-worker
+    container_name: leovincifinance-consolidacao-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      gateway-api:
+        condition: service_started
+    environment:
+      ConnectionStrings__ConsolidacaoDb: "Host=postgres;Port=5432;Database=leovincifinance;Username=postgres;Password=postgres"
+      Kafka__BootstrapServers: "kafka:29092"
+      Financeiro__BaseUrl: "http://gateway-api:8080"
+      Relatorios__BaseUrl: "http://gateway-api:8080"
+      Auth__BaseUrl: "http://auth-api:8080"
+      ServiceAccount__Username: "service-consolidacao"
+      ServiceAccount__Senha: "${SERVICE_ACCOUNT_SENHA:?defina SERVICE_ACCOUNT_SENHA no arquivo .env — ver README}"
+      ServiceAccount__Token: "${SERVICE_ACCOUNT_TOKEN:-}"
+      Resilience__TimeoutSegundos: "10"
+      Consolidacao__LimiteTentativas: "3"
+      Consolidacao__IntervaloAgendador: "1.00:00:00"
+      Consolidacao__IntervaloRetryFalhas: "01:00:00"
+      Consolidacao__IntervaloDeteccaoLacunas: "06:00:00"
+
+volumes:
+  postgres-data:

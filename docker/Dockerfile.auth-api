@@ -1,0 +1,21 @@
+# Build context: raiz do repositório (LeoVinciFinance/)
+# docker build -f docker/Dockerfile.auth-api -t leovincifinance/auth-api .
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY LeoVinciFinance.sln ./
+COPY src/ ./src/
+COPY tests/ ./tests/
+
+RUN dotnet restore src/Auth/Auth.Api/Auth.Api.csproj
+
+RUN dotnet publish src/Auth/Auth.Api/Auth.Api.csproj -c Release -o /app/publish --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "Auth.Api.dll"]
