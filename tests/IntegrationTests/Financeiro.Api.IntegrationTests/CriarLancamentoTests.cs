@@ -1,7 +1,8 @@
+using Financeiro.Api.Contracts;
+using FluentAssertions;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using FluentAssertions;
 using Xunit;
 
 namespace Financeiro.Api.IntegrationTests;
@@ -62,7 +63,7 @@ public class CriarLancamentoTests : IClassFixture<FinanceiroApiFactory>
         {
             return;
         }
-        var token = JwtTestTokenFactory.GerarToken(idUsuario: 1, perfil: "Comerciante");
+        var token = JwtTestTokenFactory.GerarToken(idUsuario: 1, perfil: "Comerciante"); // token generation unchanged; touch to rerun tests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.PostAsJsonAsync("/api/financeiro/lancamentos", new
@@ -93,14 +94,10 @@ public class CriarLancamentoTests : IClassFixture<FinanceiroApiFactory>
 
         // idUsuario=999 não possui nenhuma conta cadastrada no banco de teste — a checagem
         // de titularidade (seção 22) deve rejeitar antes mesmo de tentar persistir.
-        var token = JwtTestTokenFactory.GerarToken(idUsuario: 999, perfil: "Comerciante");
+        var token = JwtTestTokenFactory.GerarToken(idUsuario: 999, perfil: "Comerciante"); // token generation unchanged; touch to rerun tests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await client.PostAsJsonAsync("/api/financeiro/lancamentos", new
-        {
-            idConta = Guid.NewGuid(),
-            valor = 100m
-        });
+        var response = await client.PostAsJsonAsync("/api/financeiro/lancamentos", new CriarLancamentoRequest(Guid.NewGuid(), 100m));  
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }

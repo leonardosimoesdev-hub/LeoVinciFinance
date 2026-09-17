@@ -8,7 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSharedSerilog(serviceName: "Financeiro.Api");
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        // Ensure request body property name matching is case-insensitive and compatible
+        // with test payloads that use camelCase (e.g., { "idConta": ..., "valor": ... }).
+        opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddFinanceiroModule(builder.Configuration);
 builder.Services.AddSharedJwtAuthentication(builder.Configuration);
 builder.Services.AddSwaggerWithBearerAuth("LeoVinciFinance — Financeiro API");

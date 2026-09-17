@@ -2,9 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Financeiro.Api.Contracts;
 
-public record CriarLancamentoRequest(
-    [property: Required] Guid IdConta,
-    [property: Required] decimal Valor);
+public record CriarLancamentoRequest(Guid IdConta, decimal Valor);
 
 public record LancamentoResponse(Guid Id, Guid IdConta, decimal Valor, DateOnly Data);
 

@@ -15,17 +15,19 @@ public static class ServiceAuthExtensions
     {
         services.AddMemoryCache();
         services.Configure<ServiceAccountOptions>(configuration.GetSection(ServiceAccountOptions.SectionName));
-        services.Configure<ResilienceOptions>(configuration.GetSection(ResilienceOptions.SectionName));
+        // Configure ResilienceOptions from the centralized BuildingBlocks.Resilience project
+        services.Configure<BuildingBlocks.Resilience.ResilienceOptions>(configuration.GetSection(BuildingBlocks.Resilience.ResilienceOptions.SectionName));
 
         var authBaseUrl = configuration["Auth:BaseUrl"]
             ?? throw new InvalidOperationException("Configuração 'Auth:BaseUrl' ausente.");
 
-        var resilience = configuration.GetSection(ResilienceOptions.SectionName).Get<ResilienceOptions>() ?? new ResilienceOptions();
+        var resilience = configuration.GetSection(BuildingBlocks.Resilience.ResilienceOptions.SectionName)
+            .Get<BuildingBlocks.Resilience.ResilienceOptions>() ?? new BuildingBlocks.Resilience.ResilienceOptions();
 
         services.AddRefitClient<IAuthApiClient>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(authBaseUrl))
-            .AddPolicyHandler(ResiliencePolicies.GetRetryPolicy(resilience))
-            .AddPolicyHandler(ResiliencePolicies.GetTimeoutPolicy(resilience));
+            .AddPolicyHandler(BuildingBlocks.Resilience.ResiliencePolicies.GetRetryPolicy(resilience))
+            .AddPolicyHandler(BuildingBlocks.Resilience.ResiliencePolicies.GetTimeoutPolicy(resilience));
 
         services.AddSingleton<IServiceTokenProvider, ServiceTokenProvider>();
 
@@ -40,13 +42,14 @@ public static class ServiceAuthExtensions
     public static IServiceCollection AddResilientRefitClient<TClient>(this IServiceCollection services, IConfiguration configuration, string baseUrl)
         where TClient : class
     {
-        var resilience = configuration.GetSection(ResilienceOptions.SectionName).Get<ResilienceOptions>() ?? new ResilienceOptions();
+        var resilience = configuration.GetSection(BuildingBlocks.Resilience.ResilienceOptions.SectionName)
+            .Get<BuildingBlocks.Resilience.ResilienceOptions>() ?? new BuildingBlocks.Resilience.ResilienceOptions();
 
         services.AddRefitClient<TClient>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
-            .AddPolicyHandler(ResiliencePolicies.GetRetryPolicy(resilience))
-            .AddPolicyHandler(ResiliencePolicies.GetCircuitBreakerPolicy(resilience))
-            .AddPolicyHandler(ResiliencePolicies.GetTimeoutPolicy(resilience));
+            .AddPolicyHandler(BuildingBlocks.Resilience.ResiliencePolicies.GetRetryPolicy(resilience))
+            .AddPolicyHandler(BuildingBlocks.Resilience.ResiliencePolicies.GetCircuitBreakerPolicy(resilience))
+            .AddPolicyHandler(BuildingBlocks.Resilience.ResiliencePolicies.GetTimeoutPolicy(resilience));
 
         return services;
     }

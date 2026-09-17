@@ -22,21 +22,12 @@ public static class FinanceiroModuleExtensions
 {
     public static IServiceCollection AddFinanceiroModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("FinanceiroDb");
+        var connectionString = configuration.GetConnectionString("FinanceiroDb")
+            ?? throw new InvalidOperationException("Connection string 'FinanceiroDb' não configurada.");
 
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            // Ambiente de teste/integração sem container: usa InMemoryDatabase para permitir
-            // execução determinística dos testes sem exigir uma instância real do PostgreSQL.
-            services.AddDbContext<FinanceiroDbContext>(options =>
-                options.UseInMemoryDatabase("FinanceiroInMemoryTest"));
-        }
-        else
-        {
-            services.AddDbContext<FinanceiroDbContext>(options =>
-                options.UseNpgsql(connectionString, npgsql =>
-                    npgsql.MigrationsHistoryTable("__ef_migrations_history", FinanceiroDbContext.Schema)));
-        }
+        services.AddDbContext<FinanceiroDbContext>(options =>
+            options.UseNpgsql(connectionString, npgsql =>
+                npgsql.MigrationsHistoryTable("__ef_migrations_history", FinanceiroDbContext.Schema)));
 
         services.AddScoped<ILancamentoRepository, LancamentoRepository>();
         services.AddScoped<IClienteReadRepository, ClienteReadRepository>();
