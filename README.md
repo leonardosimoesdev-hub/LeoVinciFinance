@@ -108,25 +108,34 @@ Financeiro agora vêm de `appsettings` ou de classes de constantes (`FinanceiroM
 |`System.Security.Cryptography.Xml`|(transitivo, 9.0.0)|**override direto para 10.0.0**|Dependência transitiva vulnerável trazida por `System.IdentityModel.Tokens.Jwt`|
 |`SSH.NET`|(transitivo)|**override direto para 2026.0.0**|Dependência transitiva vulnerável trazida por `Testcontainers`|
 
-Se `dotnet restore` ainda reclamar de alguma versão específica (o NuGet muda constantemente e
-isso foi verificado por pesquisa, não por um restore real), ajuste a versão exata no `.csproj`
-correspondente — a causa raiz (nome/faixa de versão errada) já está corrigida.
 
 ## Primeira execução (local, sem Docker)
 
 1. Suba um PostgreSQL local (ou `docker compose up postgres -d`). No diretório do projeto.
-2. Gere e aplique as migrations de cada módulo (nenhuma migration foi commitada ainda — isso
-exige o SDK do EF Core rodando de verdade, que não está disponível no ambiente onde este
-código foi escrito):
+2. Gere e aplique as migrations de cada módulo:
 
 ```bash
    dotnet tool install --global dotnet-ef   # se ainda não tiver
 
-   for m in Auth Financeiro Relatorios Consolidacao; do
-     dotnet ef migrations add InicialCreate --project src/$m/$m.Infrastructure --startup-project src/$m/$m.Infrastructure
-     dotnet ef database update --project src/$m/$m.Infrastructure --startup-project src/$m/$m.Infrastructure
-   done
+  foreach ($m in "Auth","Financeiro","Relatorios","Consolidacao") { $infra="src/$m/$m.Infrastructure"; dotnet ef migrations add InicialCreate --project "$infra/$m.Infrastructure.csproj" --startup-project "$infra/$m.Infrastructure.csproj"; if ($LASTEXITCODE -ne 0) { break }; dotnet ef database update --project "$infra/$m.Infrastructure.csproj" --startup-project "$infra/$m.Infrastructure.csproj"; if ($LASTEXITCODE -ne 0) { break } } 
+
    ```
+
+Nota: Durante a execução das migrations, pode ser exibida uma mensagem de erro semelhante à apresentada abaixo:
+
+
+```bash
+
+Failed executing DbCommand (28ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM relatorios.__ef_migrations_history
+ORDER BY "MigrationId";
+
+   ```
+Esse comportamento está relacionado a um bug conhecido do Entity Framework (EF) ao processar migrations em múltiplos schemas. A mensagem ocorre durante a etapa de verificação do histórico de migrations e não impede a criação ou execução normal da migration.
+
+Portanto, caso essa mensagem seja exibida nesse contexto, ela pode ser desconsiderada, desde que a migration seja posteriormente criada e aplicada normalmente.
+
 
 3. `appsettings.Development.json` de cada `\\\*.Api`/Worker já vem com uma chave JWT e credenciais
 de desenvolvimento — **nunca usar esses valores em produção**.
@@ -165,6 +174,30 @@ Serviços expostos:
 
 As migrations **não** rodam automaticamente no `docker compose up` — aplique-as manualmente
 antes do primeiro uso (aponte a connection string para `localhost:5432`).
+
+
+```bash
+   dotnet tool install --global dotnet-ef   # se ainda não tiver
+
+  foreach ($m in "Auth","Financeiro","Relatorios","Consolidacao") { $infra="src/$m/$m.Infrastructure"; dotnet ef migrations add InicialCreate --project "$infra/$m.Infrastructure.csproj" --startup-project "$infra/$m.Infrastructure.csproj"; if ($LASTEXITCODE -ne 0) { break }; dotnet ef database update --project "$infra/$m.Infrastructure.csproj" --startup-project "$infra/$m.Infrastructure.csproj"; if ($LASTEXITCODE -ne 0) { break } }
+
+   ```
+
+Nota: Durante a execução das migrations, pode ser exibida uma mensagem de erro semelhante à apresentada abaixo:
+
+
+```bash
+
+Failed executing DbCommand (28ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM relatorios.__ef_migrations_history
+ORDER BY "MigrationId";
+
+   ```
+Esse comportamento está relacionado a um bug conhecido do Entity Framework (EF) ao processar migrations em múltiplos schemas. A mensagem ocorre durante a etapa de verificação do histórico de migrations e não impede a criação ou execução normal da migration.
+
+Portanto, caso essa mensagem seja exibida nesse contexto, ela pode ser desconsiderada, desde que a migration seja posteriormente criada e aplicada normalmente.
+
 
 ## Conta de serviço (Relatorios.Api e Consolidacao.BackgroundServices)
 
