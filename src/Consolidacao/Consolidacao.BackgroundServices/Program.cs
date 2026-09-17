@@ -14,7 +14,8 @@ var hostBuilder = new HostBuilder()
     .UseSharedSerilog(serviceName: "Consolidacao.BackgroundServices")
     .ConfigureServices((HostBuilderContext context, IServiceCollection services) =>
     {
-        services.AddConsolidacaoModule(context.Configuration);
+         services.AddConsolidacaoModule(context.Configuration);
+         services.AddSharedOpenTelemetry(context.Configuration, serviceName: "Consolidacao.BackgroundServices");
         services.AddHostedService<SaldoDiarioConsolidadoAgendadorHostedService>();
         services.AddHostedService<SaldoDiarioConsolidadoRetryHostedService>();
         services.AddHostedService<SaldoDiarioConsolidadoLacunasHostedService>();

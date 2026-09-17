@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -26,7 +28,7 @@ public static class ObservabilityExtensions
                 .Enrich.WithMachineName()
                 .WriteTo.Console(outputTemplate:
                     "[{Timestamp:HH:mm:ss} {Level:u3}] ({Service}) {CorrelationId} {Message:lj}{NewLine}{Exception}");
-        });
+        }, writeToProviders: true);
 
     public static IServiceCollection AddSharedOpenTelemetry(this IServiceCollection services, IConfiguration configuration, string serviceName)
     {
@@ -34,6 +36,15 @@ public static class ObservabilityExtensions
 
         services.AddHttpContextAccessor();
         services.AddSingleton<BuildingBlocks.Common.Abstractions.ICorrelationContextAccessor, HttpCorrelationContextAccessor>();
+
+        services.AddLogging(logging => logging.AddOpenTelemetry(options =>
+        {
+            options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName));
+            options.IncludeFormattedMessage = true;
+            options.IncludeScopes = true;
+            options.ParseStateValues = true;
+            options.AddOtlpExporter(otlp => otlp.Endpoint = new Uri(otlpEndpoint));
+        }));
 
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource.AddService(serviceName))
