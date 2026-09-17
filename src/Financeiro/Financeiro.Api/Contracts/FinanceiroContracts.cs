@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Financeiro.Api.Contracts;
 
 public record CriarLancamentoRequest(Guid IdConta, decimal Valor);

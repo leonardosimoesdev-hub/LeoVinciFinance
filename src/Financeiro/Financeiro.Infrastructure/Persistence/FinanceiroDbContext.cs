@@ -33,6 +33,26 @@ public class FinanceiroDbContext : DbContext
 
             builder.Metadata.FindNavigation(nameof(Cliente.Contas))!
                 .SetPropertyAccessMode(Microsoft.EntityFrameworkCore.PropertyAccessMode.Field);
+
+            builder.HasData(
+                new
+                {
+                    Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    IdUsuario = 1L,
+                    Nome = "Cliente Seed 1"
+                },
+                new
+                {
+                    Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    IdUsuario = 2L,
+                    Nome = "Cliente Seed 2"
+                },
+                new
+                {
+                    Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    IdUsuario = 3L,
+                    Nome = "Cliente Seed 3"
+                });
         });
 
         modelBuilder.Entity<Conta>(builder =>
@@ -41,6 +61,38 @@ public class FinanceiroDbContext : DbContext
             builder.HasKey(c => c.Id);
             builder.Property(c => c.IdCliente).HasColumnName("id_cliente").IsRequired();
             builder.HasIndex(c => c.IdCliente);
+
+            builder.HasData(
+                new
+                {
+                    Id = Guid.Parse("11111111-1111-1111-1111-111111111121"),
+                    IdCliente = Guid.Parse("11111111-1111-1111-1111-111111111111")
+                },
+                new
+                {
+                    Id = Guid.Parse("11111111-1111-1111-1111-111111111122"),
+                    IdCliente = Guid.Parse("11111111-1111-1111-1111-111111111111")
+                },
+                new
+                {
+                    Id = Guid.Parse("22222222-2222-2222-2222-222222222221"),
+                    IdCliente = Guid.Parse("22222222-2222-2222-2222-222222222222")
+                },
+                new
+                {
+                    Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    IdCliente = Guid.Parse("22222222-2222-2222-2222-222222222222")
+                },
+                new
+                {
+                    Id = Guid.Parse("33333333-3333-3333-3333-333333333331"),
+                    IdCliente = Guid.Parse("33333333-3333-3333-3333-333333333333")
+                },
+                new
+                {
+                    Id = Guid.Parse("33333333-3333-3333-3333-333333333332"),
+                    IdCliente = Guid.Parse("33333333-3333-3333-3333-333333333333")
+                });
         });
 
         modelBuilder.Entity<Lancamento>(builder =>

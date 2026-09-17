@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { erro = result.Error });
 
         var value = result.Value!;
-        return Ok(new LoginResponse(value.Token, value.IdUsuario, value.Username, value.Perfil));
+        return Ok(new LoginResponse(value.Token));
     }
 
     /// <summary>
@@ -54,9 +54,8 @@ public class AuthController : ControllerBase
         var result = await _validarTokenHandler.HandleAsync(new ValidarTokenCommand(request.Token), cancellationToken);
 
         if (!result.IsSuccess)
-            return Ok(new ValidarTokenResponse(false, null, null, null, null));
+            return Ok(new ValidarTokenResponse(false));
 
-        var value = result.Value!;
-        return Ok(new ValidarTokenResponse(value.Valido, value.IdUsuario, value.Username, value.Perfil, value.IdConta));
+        return Ok(new ValidarTokenResponse(result.Value!.Valido));
     }
 }

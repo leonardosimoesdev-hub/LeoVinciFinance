@@ -18,8 +18,8 @@ public interface IAuthApiClient
 
 public record LoginRequestDto(string Username, string Senha);
 
-public record LoginResponseDto(string Token, long IdUsuario, string Username, string Perfil);
+public record LoginResponseDto(string Token);
 
 public record ValidarTokenRequestDto(string Token);
 
-public record ValidarTokenResponseDto(bool Valido, long? IdUsuario, string? Username, string? Perfil, Guid? IdConta);
+public record ValidarTokenResponseDto(bool Valido);

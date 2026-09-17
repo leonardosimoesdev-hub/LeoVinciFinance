@@ -3,15 +3,15 @@
 Sistema de controle financeiro modular (Auth, Financeiro, Relatórios, Consolidação) construído
 em .NET 10 / Clean Architecture, conforme a Especificação Mestre fornecida.
 
-> \\\*\\\*Sobre esta revisão (round 1 de ajustes)\\\*\\\*: este código foi escrito por um assistente de IA
+> \\\\\\\*\\\\\\\*Sobre esta revisão (round 1 de ajustes)\\\\\\\*\\\\\\\*: este código foi escrito por um assistente de IA
 > sem acesso a um SDK .NET completo nem à internet no ambiente onde a maior parte dele foi
 > gerada. A primeira entrega compilou com uma série de erros reais (relacionados no arquivo
 > `docs/prompts/Ajustes.round1.md`), que foram corrigidos nesta revisão — incluindo, mais
-> importante, uma correção \\\*\\\*arquitetural\\\*\\\*: o desenho original do módulo de Consolidação
+> importante, uma correção \\\\\\\*\\\\\\\*arquitetural\\\\\\\*\\\\\\\*: o desenho original do módulo de Consolidação
 > estava incorreto (Financeiro publicava um evento Kafka que a Especificação Mestre e a
 > ADR 0011 explicitamente proíbem). O desenho atual segue `docs/architecture/architecture.md`
-> e `docs/c4/component.md`. Ainda assim, \\\*\\\*recomenda-se fortemente rodar `dotnet restore` e
-> `dotnet build` localmente antes de considerar o código pronto\\\*\\\* — não há garantia de que
+> e `docs/c4/component.md`. Ainda assim, \\\\\\\*\\\\\\\*recomenda-se fortemente rodar `dotnet restore` e
+> `dotnet build` localmente antes de considerar o código pronto\\\\\\\*\\\\\\\* — não há garantia de que
 > todas as versões de pacote e toda a sintaxe de bibliotecas de terceiros (MassTransit, YARP,
 > ArchUnitNET) estejam 100% corretas sem uma compilação real.
 
@@ -27,15 +27,15 @@ em .NET 10 / Clean Architecture, conforme a Especificação Mestre fornecida.
 src/
   BuildingBlocks/
     BuildingBlocks.Common        # Entity/DomainException, CQRS (ICommand/IQuery/Result), IUnitOfWork
-    BuildingBlocks.WebHost       # JWT bearer, Swagger, Serilog + OpenTelemetry (uso exclusivo das \\\*.Api)
-    BuildingBlocks.ServiceAuth   # Token de conta de serviço + políticas Polly (uso das \\\*.Infrastructure que chamam outros módulos)
+    BuildingBlocks.WebHost       # JWT bearer, Swagger, Serilog + OpenTelemetry (uso exclusivo das \\\\\\\*.Api)
+    BuildingBlocks.ServiceAuth   # Token de conta de serviço + políticas Polly (uso das \\\\\\\*.Infrastructure que chamam outros módulos)
   Auth/                          # Domain, Application, Infrastructure, Api
   Financeiro/                    # Domain, Application, Infrastructure, Api — NÃO usa Kafka (ver ADR 0011)
   Relatorios/                    # Domain, Application, Infrastructure, Api
   Consolidacao/                  # Domain (Job/Etapa/Execucao), Application, Infrastructure, BackgroundServices (Worker)
   Gateway/                       # Gateway.Api (YARP) — 2 nós para Financeiro e Relatórios
 tests/
-  UnitTests/                     # \\\*.Domain.Tests por módulo
+  UnitTests/                     # \\\\\\\*.Domain.Tests por módulo
   ArchitectureTests/             # ArchUnitNET — valida as regras de dependência entre camadas/módulos
   IntegrationTests/              # Financeiro.Api.IntegrationTests (Testcontainers + Postgres real)
   LoadTests/                     # RelatoriosLoadTest (NBomber)
@@ -104,9 +104,10 @@ Financeiro agora vêm de `appsettings` ou de classes de constantes (`FinanceiroM
 |`Npgsql.EntityFrameworkCore.PostgreSQL`|9.0.4|**10.0.3**|9.0.4 exige EF Core `<10.0.0`, conflitando com `Microsoft.EntityFrameworkCore 10.0.0`. A 10.0.3 já suporta EF Core 10/.NET 10|
 |`NBomber` / `NBomber.Http`|5.8.0 / 5.8.0|**6.2.0 / 6.1.0**|Versões antigas resolviam `NBomber.Contracts` em versões incompatíveis entre si|
 |`Refit` / `Refit.HttpClientFactory`|7.2.1|**8.0.0**|Corrige vulnerabilidade conhecida (GHSA-3hxg-fxwm-8gf7)|
-|`OpenTelemetry.\\\*`|1.10.x|**1.11.x**|Corrige vulnerabilidades conhecidas em `OpenTelemetry.Api`/`Exporter.OpenTelemetryProtocol`|
+|`OpenTelemetry.\\\\\\\*`|1.10.x|**1.11.x**|Corrige vulnerabilidades conhecidas em `OpenTelemetry.Api`/`Exporter.OpenTelemetryProtocol`|
 |`System.Security.Cryptography.Xml`|(transitivo, 9.0.0)|**override direto para 10.0.0**|Dependência transitiva vulnerável trazida por `System.IdentityModel.Tokens.Jwt`|
 |`SSH.NET`|(transitivo)|**override direto para 2026.0.0**|Dependência transitiva vulnerável trazida por `Testcontainers`|
+
 
 
 ## Primeira execução (local, sem Docker)
@@ -124,20 +125,23 @@ Financeiro agora vêm de `appsettings` ou de classes de constantes (`FinanceiroM
 Nota: Durante a execução das migrations, pode ser exibida uma mensagem de erro semelhante à apresentada abaixo:
 
 
+
 ```bash
 
-Failed executing DbCommand (28ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+Failed executing DbCommand (28ms) \[Parameters=\[], CommandType='Text', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
-FROM relatorios.__ef_migrations_history
+FROM relatorios.\_\_ef\_migrations\_history
 ORDER BY "MigrationId";
 
    ```
+
 Esse comportamento está relacionado a um bug conhecido do Entity Framework (EF) ao processar migrations em múltiplos schemas. A mensagem ocorre durante a etapa de verificação do histórico de migrations e não impede a criação ou execução normal da migration.
 
 Portanto, caso essa mensagem seja exibida nesse contexto, ela pode ser desconsiderada, desde que a migration seja posteriormente criada e aplicada normalmente.
 
 
-3. `appsettings.Development.json` de cada `\\\*.Api`/Worker já vem com uma chave JWT e credenciais
+
+3. `appsettings.Development.json` de cada `\\\\\\\*.Api`/Worker já vem com uma chave JWT e credenciais
 de desenvolvimento — **nunca usar esses valores em produção**.
 4. Rode cada serviço em terminais separados:
 
@@ -154,7 +158,7 @@ de desenvolvimento — **nunca usar esses valores em produção**.
 ## Execução via Docker Compose
 
 ```bash
-cp .env.example .env   # preencha JWT\\\_KEY e SERVICE\\\_ACCOUNT\\\_SENHA (SERVICE\\\_ACCOUNT\\\_TOKEN pode ficar vazio)
+cp .env.example .env   # preencha JWT\\\\\\\_KEY e SERVICE\\\\\\\_ACCOUNT\\\\\\\_SENHA (SERVICE\\\\\\\_ACCOUNT\\\\\\\_TOKEN pode ficar vazio)
 docker compose up --build
 ```
 
@@ -176,6 +180,7 @@ As migrations **não** rodam automaticamente no `docker compose up` — aplique-
 antes do primeiro uso (aponte a connection string para `localhost:5432`).
 
 
+
 ```bash
    dotnet tool install --global dotnet-ef   # se ainda não tiver
 
@@ -186,17 +191,20 @@ antes do primeiro uso (aponte a connection string para `localhost:5432`).
 Nota: Durante a execução das migrations, pode ser exibida uma mensagem de erro semelhante à apresentada abaixo:
 
 
+
 ```bash
 
-Failed executing DbCommand (28ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+Failed executing DbCommand (28ms) \[Parameters=\[], CommandType='Text', CommandTimeout='30']
 SELECT "MigrationId", "ProductVersion"
-FROM relatorios.__ef_migrations_history
+FROM relatorios.\_\_ef\_migrations\_history
 ORDER BY "MigrationId";
 
    ```
+
 Esse comportamento está relacionado a um bug conhecido do Entity Framework (EF) ao processar migrations em múltiplos schemas. A mensagem ocorre durante a etapa de verificação do histórico de migrations e não impede a criação ou execução normal da migration.
 
 Portanto, caso essa mensagem seja exibida nesse contexto, ela pode ser desconsiderada, desde que a migration seja posteriormente criada e aplicada normalmente.
+
 
 
 ## Conta de serviço (Relatorios.Api e Consolidacao.BackgroundServices)
@@ -207,15 +215,13 @@ token de longa duração:
 
 ```bash
 # 1. Suba ao menos Auth.Api e Postgres, com as migrations aplicadas
-curl -X POST http://localhost:5001/api/auth/login \\\\
-  -H "Content-Type: application/json" \\\\
-  -d '{"username":"service-consolidacao","senha":"ServiceConsolidacao@123"}'
+curl -X POST http://localhost:5001/api/auth/login -H "Content-Type: application/json" -d '{"username":"service-consolidacao","senha":"ServiceConsolidacao@123"}'
 
-# 2. Copie o "token" da resposta para SERVICE\\\_ACCOUNT\\\_TOKEN no .env (ou appsettings.Development.json)
-# 3. Reinicie relatorios-api-\\\*/consolidacao-worker
+# 2. Copie o "token" da resposta para SERVICE\\\\\\\_ACCOUNT\\\\\\\_TOKEN no .env (ou appsettings.Development.json)
+# 3. Reinicie relatorios-api-\\\\\\\*/consolidacao-worker
 ```
 
-Se você não configurar `SERVICE\\\_ACCOUNT\\\_TOKEN`, o sistema funciona do mesmo jeito: cada
+Se você não configurar `SERVICE\\\\\\\_ACCOUNT\\\\\\\_TOKEN`, o sistema funciona do mesmo jeito: cada
 chamada valida o token vazio (falha), cai no fallback de login com `ServiceAccount:Senha`, e
 loga um aviso sugerindo configurar o token. Funcionalmente idêntico, só um pouco mais lento.
 
@@ -227,31 +233,44 @@ loga um aviso sugerindo configurar o token. Funcionalmente idêntico, só um pou
 |`comerciante`|`Comerciante@123`|Comerciante|Fluxo normal de lançamentos|
 |`service-consolidacao`|`ServiceConsolidacao@123`|Admin|Conta de serviço (Relatorios.Api e Consolidacao.BackgroundServices)|
 
+## Clientes e contas de desenvolvimento (HasData)
+
+O `FinanceiroDbContext` utiliza `HasData` para gerar, por meio da migration do Entity
+Framework, 3 clientes com 2 contas cada. Cada cliente possui um `IdUsuario` definido:
+
+|Cliente|IdUsuario|Contas|
+|-|-|-|
+|Cliente Seed 1|`1`|2 contas|
+|Cliente Seed 2|`2`|2 contas|
+|Cliente Seed 3|`3`|2 contas|
+
+Os IDs dos clientes e das contas são determinísticos. Portanto, as contas podem ser
+consultadas após a aplicação da migration e utilizadas nos testes manuais. Esses dados não
+são criados por um seed executado em runtime.
+
 ## Fluxo básico de teste manual
 
 ```bash
 # 1. Login
-curl -X POST http://localhost:5000/api/auth/login \\\\
-  -H "Content-Type: application/json" \\\\
+curl -X POST http://localhost:5000/api/auth/login \\\\\\\\
+  -H "Content-Type: application/json" \\\\\\\\
   -d '{"username":"comerciante","senha":"Comerciante@123"}'
 
 # 2. Criar um lançamento (substitua TOKEN e IDCONTA)
-curl -X POST http://localhost:5000/api/financeiro/lancamentos \\\\
-  -H "Content-Type: application/json" \\\\
-  -H "Authorization: Bearer TOKEN" \\\\
+curl -X POST http://localhost:5000/api/financeiro/lancamentos \\\\\\\\
+  -H "Content-Type: application/json" \\\\\\\\
+  -H "Authorization: Bearer TOKEN" \\\\\\\\
   -d '{"idConta":"IDCONTA","valor":150.75}'
 
 # 3. A consolidacao de HOJE so roda no proximo ciclo do agendador diario (ou do worker de
 #    lacunas). Em desenvolvimento, appsettings.Development.json do worker usa intervalos bem
 #    mais curtos (5-10 min) para nao precisar esperar 24h. Depois, consultar o saldo:
-curl "http://localhost:5000/api/relatorios/saldo-diario-consolidado?idConta=IDCONTA\\\&data=2026-09-14" \\\\
+curl "http://localhost:5000/api/relatorios/saldo-diario-consolidado?idConta=IDCONTA\\\\\\\&data=2026-09-14" \\\\\\\\
   -H "Authorization: Bearer TOKEN"
 ```
 
-> Não há endpoint para criar `Cliente`/`Conta` na Especificação Mestre original — para os
-> testes manuais acima funcionarem, é necessário inserir um `Cliente` e uma `Conta` vinculados
-> ao `IdUsuario` do usuário de teste diretamente no banco (schema `financeiro`), ou implementar
-> esse endpoint adicional. Lacuna conhecida, já documentada desde a primeira entrega.
+> Não há endpoint para criar `Cliente`/`Conta` na Especificação Mestre original. Para os testes
+> manuais, utilize as contas geradas pelo `HasData` após aplicar as migrations.
 
 ## Testes
 
@@ -267,8 +286,8 @@ dotnet test tests/IntegrationTests/Financeiro.Api.IntegrationTests   # exige Doc
 Teste de carga (requer o ambiente completo rodando e um token válido):
 
 ```bash
-export LOAD\\\_TEST\\\_TOKEN="<token>"
-export LOAD\\\_TEST\\\_ID\\\_CONTA="<guid>"
+export LOAD\\\\\\\_TEST\\\\\\\_TOKEN="<token>"
+export LOAD\\\\\\\_TEST\\\\\\\_ID\\\\\\\_CONTA="<guid>"
 dotnet run -c Release --project tests/LoadTests/RelatoriosLoadTest
 ```
 
