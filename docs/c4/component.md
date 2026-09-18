@@ -106,4 +106,5 @@ C4Component
     UpdateRelStyle(consumerIniciado, db, $offsetX="-70", $offsetY="55")
     UpdateRelStyle(consumerConcluido, db, $offsetY="65")
     UpdateRelStyle(consumerFalhas, db, $offsetX="70", $offsetY="55")
-    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")```
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")
+```
