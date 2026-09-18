@@ -17,7 +17,7 @@ C4Context
 
 
 
-&#x20;   System\_Ext(consumidorApi, "Cliente HTTP externo", "Qualquer client que consome as APIs via Gateway (ex.: Swagger, front-end futuro)")
+&#x20;   System_Ext(consumidorApi, "Cliente HTTP externo", "Qualquer client que consome as APIs via Gateway (ex.: Swagger, front-end futuro)")
 
 
 
