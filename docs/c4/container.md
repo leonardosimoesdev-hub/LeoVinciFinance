@@ -3,13 +3,12 @@
 ```mermaid
 C4Container
 
-&#x20;   title LeoVinciFinance — Diagrama de Containers
+title LeoVinciFinance — Diagrama de Containers
 
 
 
-&#x20;   Person(admin, "Administrador")
-
-&#x20;   Person(comerciante, "Comerciante")
+Person(admin, "Administrador")
+Person(comerciante, "Comerciante")
 
 
 
