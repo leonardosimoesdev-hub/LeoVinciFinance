@@ -21,5 +21,5 @@ Essa separação evita um único componente monolítico responsável por agendam
 ## Consequências
 
 * Ganho: cada mecanismo de recuperação é testável e configurável isoladamente (intervalos, limites e data inicial de busca independentes).
-* Custo: três processos de fundo coexistindo sobre a mesma tabela de execuções exige cuidado com concorrência — mitigado pelas checagens de idempotência do ADR 0007.
+
 
