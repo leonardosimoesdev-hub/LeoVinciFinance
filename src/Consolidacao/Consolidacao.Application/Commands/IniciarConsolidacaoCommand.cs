@@ -61,7 +61,7 @@ public class IniciarConsolidacaoCommandHandler : ICommandHandler<IniciarConsolid
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _eventPublisher.PublicarIniciadoAsync(
-            new Consolidacao.Application.Events.SaldoDiarioConsolidadoIniciadoEvento(Guid.Empty, command.IdConta, command.Data, correlationId),
+            new Consolidacao.Application.Events.SaldoDiarioConsolidadoIniciadoEvento(iniciado.Id, command.IdConta, command.Data, correlationId),
             cancellationToken);
 
         _logger.LogInformation(

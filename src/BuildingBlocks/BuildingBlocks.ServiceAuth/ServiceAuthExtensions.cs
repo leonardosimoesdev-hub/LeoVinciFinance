@@ -1,3 +1,4 @@
+using BuildingBlocks.ServiceAuth.Formmatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
@@ -45,7 +46,12 @@ public static class ServiceAuthExtensions
         var resilience = configuration.GetSection(BuildingBlocks.Resilience.ResilienceOptions.SectionName)
             .Get<BuildingBlocks.Resilience.ResilienceOptions>() ?? new BuildingBlocks.Resilience.ResilienceOptions();
 
-        services.AddRefitClient<TClient>()
+        var settings = new RefitSettings()
+        {
+           UrlParameterFormatter = new CustomUrlParameterFormatter()
+        };
+
+        services.AddRefitClient<TClient>(settings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
             .AddPolicyHandler(BuildingBlocks.Resilience.ResiliencePolicies.GetRetryPolicy(resilience))
             .AddPolicyHandler(BuildingBlocks.Resilience.ResiliencePolicies.GetCircuitBreakerPolicy(resilience))

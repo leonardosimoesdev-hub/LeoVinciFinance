@@ -26,7 +26,7 @@ public class FinanceiroGateway : IFinanceiroGateway
     public async Task<IReadOnlyList<LancamentoDto>> ObterLancamentosPorContaEDataAsync(Guid idConta, DateOnly data, CancellationToken cancellationToken)
     {
         var token = await _tokenProvider.ObterTokenAsync(cancellationToken);
-        var lancamentos = await _client.ObterLancamentosPorContaEDataAsync(idConta, data, $"Bearer {token}");
+        var lancamentos = await _client.ObterLancamentosPorContaEDataAsync(idConta, data.ToString("yyyy-MM-dd"), $"Bearer {token}");
         return lancamentos.Select(l => new LancamentoDto(l.Id, l.IdConta, l.Valor, l.Data)).ToList();
     }
 }

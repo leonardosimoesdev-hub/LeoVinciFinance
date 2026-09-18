@@ -9,7 +9,7 @@ public interface IFinanceiroApiClient
 
     [Get("/api/financeiro/contas/{idConta}/lancamentos/{data}")]
     Task<IReadOnlyList<LancamentoResponseDto>> ObterLancamentosPorContaEDataAsync(
-        Guid idConta, DateOnly data, [Header("Authorization")] string authorization);
+        Guid idConta, string data, [Header("Authorization")] string authorization);
 }
 
 public record ContaResponseDto(Guid Id, Guid IdCliente);
