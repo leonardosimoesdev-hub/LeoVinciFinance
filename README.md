@@ -20,8 +20,7 @@ de domínio é um traço deliberado, e nada existe no desenho final por acaso.
 Este repositório é a peça que reúne — em código executável — o estado atual do meu
 conhecimento arquitetural: **Clean Architecture**, **modularização por domínio**,
 **mensageria orientada a eventos**, **observabilidade nativa** e **rastreabilidade de
-decisões técnicas** (ADRs e diagramas C4), aplicados a um sistema de controle financeiro
-real, construído em **.NET 10**.
+decisões técnicas** (ADRs e diagramas C4), aplicados a um sistema de controle financeiro, construído em **.NET 10**.
 
 Não é um esboço nem um exercício acadêmico — é um produto lapidado com o mesmo cuidado que
 se dedicaria a uma gema: cada faceta (Auth, Financeiro, Relatórios, Consolidação) foi
@@ -44,6 +43,13 @@ Consolidação, também por eventos assíncronos via Kafka:
 | **Financeiro** | Cadastro de clientes/contas e lançamentos financeiros. API puramente request/response — **não depende de mensageria** (ver ADR 0011). 2 instâncias atrás do Gateway. |
 | **Relatórios** | Consulta de saldos e saldo diário consolidado. 2 instâncias atrás do Gateway. |
 | **Consolidação** | Workers em background que calculam o saldo diário consolidado de cada conta, publicam/consomem eventos internos via Kafka (MassTransit) e tratam retries e lacunas de processamento. |
+
+
+## Versão atual V.0.1.0-alpha (Funcionalidades Iniciais - MVP)
+
+- Controle de lançamentos por conta (débito/crédito).
+- Controle do fluxo de consolidação diária de saldos.
+
 
 ### Visão geral da aplicação
 
