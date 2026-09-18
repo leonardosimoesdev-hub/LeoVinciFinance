@@ -16,7 +16,7 @@ As chamadas HTTP entre Consolidação → Financeiro e Consolidação → Relat�
   * `GET lançamentos por conta/data` (Financeiro): idempotente por natureza → elegível a retry.
   * `POST saldo-diario-consolidado` (Relatórios): tornado idempotente pela regra de negócio (unicidade IdConta+Data e verificação prévia de existência) → elegível a retry.
 * Circuit breaker configurado para evitar sobrecarga em cascata quando um serviço downstream está degradado.
-* Ao esgotar as tentativas, o consumidor publica `SaldoDiarioConsolidadoComFalhas`, preservando o `IdCorrelationId` — nunca falha silenciosamente.
+* Ao esgotar as tentativas, o consumidor publica `SaldoDiarioConsolidadoComFalhas`, preservando o `CorrelationId` — nunca falha silenciosamente.
 * Logs estruturados em cada tentativa/falha (Serilog + OpenTelemetry).
 
 ## Consequências
