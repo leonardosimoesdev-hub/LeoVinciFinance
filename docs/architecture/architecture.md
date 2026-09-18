@@ -1,14 +1,10 @@
 # LeoVinciFinance — Documento de Arquitetura
 
-
-
-### Verificação de aderência a `REQUISITOS.md`
-
 * **"Serviço que faça o controle de lançamentos" + "Serviço do consolidado diário"** → mapeados para os módulos `Financeiro` (lançamentos) e `Relatorios`/`Consolidacao` (saldo diário consolidado), respectivamente. Sem conflito.
 * **"O serviço de controle de lançamento não deve ficar indisponível se o sistema de consolidado diário cair"** → requisito não funcional explícito da prova, **confirmado como já atendido pelo desenho atual**: `Financeiro.Api` nunca chama `Relatorios.Api` nem o worker de `Consolidacao`; a dependência é sempre no sentido contrário (Consolidação → Financeiro/Relatórios via HTTP, e Consolidação ↔ Kafka). Uma queda de Relatórios/Consolidação não impede a criação de novos lançamentos. Detalhado no ADR 0011.
 * **"Em dias de pico, o serviço de consolidado diário recebe 50 RPS, com no máximo 5% de perda"** → mapeado para `Relatorios.Api` (é o serviço de consulta/criação do consolidado diário exposto via HTTP); já tratado nas seções 6 e 9 deste documento e no ADR 0009.
 * **"Hospedar em repositório público (GitHub)" / "Todas as documentações de projeto devem estar no repositório"** → requisito operacional (fora do escopo de decisão arquitetural), registrado aqui para não ser esquecido nas fases finais (README + push do repositório público antes da entrega).
-* **Escopo de autenticação/perfis (Admin/Comerciante), multi-tenancy (Cliente/Conta), Kafka/MassTransit, YARP, PostgreSQL, .NET 10 etc.** → não são exigidos literalmente por `REQUISITOS.md` (que descreve um problema de negócio simples: "um comerciante controla seu fluxo de caixa"). São decisões minhas, adotadas amparadas pela própria prova, que convida explicitamente a ir além do mínimo ("não se prenda somente a eles... demonstre melhor suas capacidades"). Registrado aqui como **interpretação/ampliação de escopo, não requisito de negócio inventado em contradição com a prova** — a prova não proíbe essa ampliação, apenas não a exige.
+* **Escopo de autenticação/perfis (Admin/Comerciante), multi-tenancy (Cliente/Conta), Kafka/MassTransit, YARP, PostgreSQL, .NET 10 etc.** → não são exigidos literalmente pelos requisitos (que descreve um problema de negócio simples: "um comerciante controla seu fluxo de caixa"). São decisões minhas, adotadas amparadas pela própria prova, que convida explicitamente a ir além do mínimo ("não se prenda somente a eles... demonstre melhor suas capacidades"). Registrado aqui como **interpretação/ampliação de escopo, não requisito de negócio inventado em contradição com a prova** — a prova não proíbe essa ampliação, apenas não a exige.
 * Os princípios de Clean Architecture aplicados seguem a formulação clássica (Robert C. Martin) — ver ADR 0001. (Robert C. Martin — regra de dependência, camadas Domain/Application/Infrastructure/Presentation) com o repositório de referência `https://github.com/leonardopinto/clean-arc-example`.
 
 
@@ -146,7 +142,7 @@ Detalhamento completo em `docs/c4/deployment.md`.
 * `numeric(18,2)` para colunas monetárias; `decimal` no Domain — nunca `double`/`float`.
 * Separação entre leitura (`AsNoTracking()`) e escrita nos repositórios; sem repository genérico que esconda funcionalidades do EF Core sem necessidade.
 
-## 10\. Testes (estratégia, detalhamento na Fase 3+)
+## 10\. Testes 
 
 * Unitários: regras de negócio (lançamentos, autorização de conta, consolidação, idempotência, recuperação de falhas, gaps, limite de tentativas).
 * Arquiteturais: regra de dependência entre camadas (ArchUnitNET ou equivalente para .NET 10).
@@ -154,11 +150,4 @@ Detalhamento completo em `docs/c4/deployment.md`.
 * E2E: login → lançamento → evento Kafka → consolidação → persistência → consulta de saldo.
 * Carga: ≥ 50 RPS na API de Relatórios, com resultados documentados.
 
-## 11\. Trade-offs e pontos em aberto para as próximas fases
-
-* Algoritmo exato de hashing de senha: decisão adiada para a Fase 4 (ADR dedicado).
-* Estratégia exata de particionamento/chaveamento dos tópicos Kafka: decisão adiada para a Fase 4/6.
-* Números finais de connection pool/rate limit: dependem de medição em Fase 8; valores desta fase são estimativas de partida, não conclusões.
-* Estrutura de pastas da solution pode ser levemente ajustada na Fase 2 caso surja razão arquitetural concreta (a estrutura-base já está definida na seção 5 do prompt mestre e será respeitada).
-* Publicação em repositório GitHub público e conferência de que toda a documentação (`docs/`, README) está versionada: pendência operacional a resolver antes da entrega final (Fase 9), conforme `REQUISITOS.md`.
 
