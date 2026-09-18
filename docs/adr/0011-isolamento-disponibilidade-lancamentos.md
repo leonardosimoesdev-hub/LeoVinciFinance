@@ -6,7 +6,7 @@ Aceita
 
 ## Contexto
 
-`REQUISITOS.md` estabelece um requisito não funcional explícito e obrigatório da prova técnica: *"O serviço de controle de lançamento não deve ficar indisponível se o sistema de consolidado diário cair."*
+Há um requisito não funcional explícito e obrigatório: *"O serviço de controle de lançamento não deve ficar indisponível se o sistema de consolidado diário cair."*
 
 ## Decisão
 
