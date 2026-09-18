@@ -20,6 +20,6 @@ Há um requisito não funcional explícito e obrigatório: *"O serviço de contr
 
 ## Consequências
 
-* Ganho: atende de forma direta e verificável o requisito não funcional mais crítico da prova técnica (é o único requisito de disponibilidade explicitamente citado em `REQUISITOS.md`).
+* Ganho: atende de forma direta e verificável o requisito não funcional mais crítico da prova técnica.
 * Custo: nenhum lançamento é "confirmado como consolidado" em tempo real para o usuário — a consolidação é sempre assíncrona e D-1, o que já era uma decisão e é reforçada, não contradita, por este ADR.
 
