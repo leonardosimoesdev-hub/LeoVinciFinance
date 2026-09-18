@@ -17,12 +17,12 @@ disciplina, o **LeoVinciFinance** nasce da convicção de que um sistema bem arq
 antes de tudo, uma obra de composição: cada módulo é um estudo de proporção, cada fronteira
 de domínio é um traço deliberado, e nada existe no desenho final por acaso.
 
-Este repositório é a peça que reúne — em código executável — o estado atual do meu
+Este repositório é a peça que reúne, em código executável, o estado atual do meu
 conhecimento arquitetural: **Clean Architecture**, **modularização por domínio**,
 **mensageria orientada a eventos**, **observabilidade nativa** e **rastreabilidade de
 decisões técnicas** (ADRs e diagramas C4), aplicados a um sistema de controle financeiro, construído em **.NET 10**.
 
-Não é um esboço nem um exercício acadêmico — é um produto lapidado com o mesmo cuidado que
+Não é um esboço nem um exercício acadêmico, é um produto lapidado com o mesmo cuidado que
 se dedicaria a uma gema: cada faceta (Auth, Financeiro, Relatórios, Consolidação) foi
 cortada para refletir uma responsabilidade clara, e o conjunto forma uma peça única,
 coerente e assinada.
@@ -47,9 +47,8 @@ Consolidação, também por eventos assíncronos via Kafka:
 
 ## Versão atual V.0.1.0-alpha (Funcionalidades Iniciais - MVP)
 
-- Controle de lançamentos por conta (débito/crédito).
-- Controle do fluxo de consolidação diária de saldos.
-
+- Controle de fluxo de caixa diário com os lançamentos (débitos e créditos). também precisa de um relatório que disponibilize o saldo diário consolidado.
+- Relatório de saldo diário consolidado por conta, com histórico de lançamentos.
 
 ### Visão geral da aplicação
 
