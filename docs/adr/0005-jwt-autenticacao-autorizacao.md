@@ -6,7 +6,7 @@ Aceita
 
 ## Contexto
 
-Todas as APIs, exceto login, exigem autenticação; a autorização deve considerar os perfis `Admin` e `Comerciante`, validada no serviço responsável pela operação (não apenas no Gateway) — seção 11 do prompt mestre.
+Todas as APIs, exceto login, exigem autenticação; a autorização deve considerar os perfis `Admin` e `Comerciante`, validada no serviço responsável pela operação (não apenas no Gateway).
 
 ## Decisão
 
