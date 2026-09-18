@@ -12,7 +12,7 @@ Person(comerciante, "Comerciante")
 
 
 
-&#x20;   System\_Boundary(leovinci, "LeoVinciFinance") {
+&#x20;   System_Boundary(leovinci, "LeoVinciFinance") {
 
 &#x20;       Container(gateway, "Gateway", "YARP / ASP.NET Core", "Roteamento, load balancing e health checks")
 
