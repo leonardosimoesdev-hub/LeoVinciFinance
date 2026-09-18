@@ -6,7 +6,7 @@ Aceita
 
 ## Contexto
 
-A prova exige demonstrar escalabilidade horizontal, com duas réplicas de cada API HTTP (Financeiro e Relatórios) e um componente de roteamento/load balancing (seção 6/7 do prompt mestre).
+A prova exige demonstrar escalabilidade horizontal, com duas réplicas de cada API HTTP (Financeiro e Relatórios) e um componente de roteamento/load balancing.
 
 ## Decisão
 
@@ -17,5 +17,5 @@ A prova exige demonstrar escalabilidade horizontal, com duas réplicas de cada A
 ## Consequências
 
 * Ganho: demonstração direta de escalabilidade horizontal sem necessidade de orquestrador externo (Kubernetes) no escopo local da prova.
-* Trade-off: balanceamento round-robin simples do YARP não considera carga real das instâncias — aceitável para o escopo de prova técnica local; documentado como simplificação.
+
 
