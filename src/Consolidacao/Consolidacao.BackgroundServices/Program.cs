@@ -1,28 +1,25 @@
+using BuildingBlocks.WebHost.Observability;
 using Consolidacao.BackgroundServices.HostedServices;
 using Consolidacao.Infrastructure;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using BuildingBlocks.WebHost.Observability;
 using Serilog;
 
-var hostBuilder = new HostBuilder()
-    .ConfigureHostConfiguration(cfg =>
-    {
-        cfg.AddEnvironmentVariables();
-        cfg.AddCommandLine(args);
-    })
-    .UseSharedSerilog(serviceName: "Consolidacao.BackgroundServices")
-    .ConfigureServices((HostBuilderContext context, IServiceCollection services) =>
-    {
-         services.AddConsolidacaoModule(context.Configuration);
-         services.AddSharedOpenTelemetry(context.Configuration, serviceName: "Consolidacao.BackgroundServices");
-        services.AddHostedService<SaldoDiarioConsolidadoAgendadorHostedService>();
-        services.AddHostedService<SaldoDiarioConsolidadoRetryHostedService>();
-        services.AddHostedService<SaldoDiarioConsolidadoLacunasHostedService>();
-        services.AddHealthChecks();
-    });
+var builder = Host.CreateApplicationBuilder(args);
 
-var host = hostBuilder.Build();
+builder.UseSharedSerilog(serviceName: "Consolidacao.BackgroundServices");
+
+builder.Services.AddConsolidacaoModule(builder.Configuration);
+
+builder.Services.AddSharedOpenTelemetry(
+    builder.Configuration,
+    serviceName: "Consolidacao.BackgroundServices");
+
+builder.Services.AddHostedService<SaldoDiarioConsolidadoAgendadorHostedService>();
+builder.Services.AddHostedService<SaldoDiarioConsolidadoRetryHostedService>();
+builder.Services.AddHostedService<SaldoDiarioConsolidadoLacunasHostedService>();
+
+builder.Services.AddHealthChecks();
+
+var host = builder.Build();
 
 try
 {

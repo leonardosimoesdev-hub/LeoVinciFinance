@@ -1,3 +1,4 @@
+using BuildingBlocks.Common.Extensions;
 using Consolidacao.Application.Events;
 using MassTransit;
 
@@ -23,7 +24,7 @@ public class ConsolidacaoEventPublisher : IConsolidacaoEventPublisher
         var producer = _topicProducerProvider.GetProducer<string, SaldoDiarioConsolidadoIniciadoEvento>(
             new Uri($"topic:{KafkaTopics.SaldoDiarioConsolidadoIniciado}"));
 
-        await producer.Produce(ChaveDeParticionamento(evento.IdConta, evento.Data), evento, cancellationToken);
+        await producer.Produce(EventoHelper.ChaveDeParticionamento(evento.IdConta, evento.Data), evento, cancellationToken);
     }
 
     public async Task PublicarConcluidoAsync(SaldoDiarioConsolidadoConcluidoEvento evento, CancellationToken cancellationToken)
@@ -31,7 +32,7 @@ public class ConsolidacaoEventPublisher : IConsolidacaoEventPublisher
         var producer = _topicProducerProvider.GetProducer<string, SaldoDiarioConsolidadoConcluidoEvento>(
             new Uri($"topic:{KafkaTopics.SaldoDiarioConsolidadoConcluido}"));
 
-        await producer.Produce(ChaveDeParticionamento(evento.IdConta, evento.Data), evento, cancellationToken);
+        await producer.Produce(EventoHelper.ChaveDeParticionamento(evento.IdConta, evento.Data), evento, cancellationToken);
     }
 
     public async Task PublicarComFalhasAsync(SaldoDiarioConsolidadoComFalhasEvento evento, CancellationToken cancellationToken)
@@ -39,8 +40,6 @@ public class ConsolidacaoEventPublisher : IConsolidacaoEventPublisher
         var producer = _topicProducerProvider.GetProducer<string, SaldoDiarioConsolidadoComFalhasEvento>(
             new Uri($"topic:{KafkaTopics.SaldoDiarioConsolidadoComFalhas}"));
 
-        await producer.Produce(ChaveDeParticionamento(evento.IdConta, evento.Data), evento, cancellationToken);
+        await producer.Produce(EventoHelper.ChaveDeParticionamento(evento.IdConta, evento.Data), evento, cancellationToken);
     }
-
-    private static string ChaveDeParticionamento(Guid idConta, DateOnly data) => $"{idConta}|{data:yyyyMMdd}";
 }

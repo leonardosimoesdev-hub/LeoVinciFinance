@@ -36,11 +36,10 @@ public class SaldoDiarioConsolidadoLacunasHostedService : BackgroundService
     {
         using var timer = new PeriodicTimer(_options.IntervaloDeteccaoLacunas);
 
-        do
+        while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken)) 
         {
             await ExecutarAsync(stoppingToken);
         }
-        while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task ExecutarAsync(CancellationToken cancellationToken)

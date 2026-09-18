@@ -35,11 +35,10 @@ public class SaldoDiarioConsolidadoRetryHostedService : BackgroundService
     {
         using var timer = new PeriodicTimer(_options.IntervaloRetryFalhas);
 
-        do
+        while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken)) ;
         {
             await ExecutarAsync(stoppingToken);
         }
-        while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task ExecutarAsync(CancellationToken cancellationToken)

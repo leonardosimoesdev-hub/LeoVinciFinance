@@ -30,6 +30,25 @@ public static class ObservabilityExtensions
                     "[{Timestamp:HH:mm:ss} {Level:u3}] ({Service}) {CorrelationId} {Message:lj}{NewLine}{Exception}");
         }, writeToProviders: true);
 
+    public static HostApplicationBuilder UseSharedSerilog(
+    this HostApplicationBuilder builder,
+    string serviceName)
+    {
+        builder.Services.AddSerilog((services, configuration) =>
+        {
+            configuration
+                .ReadFrom.Configuration(builder.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .Enrich.WithProperty("Service", serviceName)
+                .Enrich.WithMachineName()
+                .WriteTo.Console(outputTemplate:
+                    "[{Timestamp:HH:mm:ss} {Level:u3}] ({Service}) {CorrelationId} {Message:lj}{NewLine}{Exception}");
+        },writeToProviders: true);
+
+        return builder;
+    }
+
     public static IServiceCollection AddSharedOpenTelemetry(this IServiceCollection services, IConfiguration configuration, string serviceName)
     {
         var otlpEndpoint = configuration["Otel:Endpoint"] ?? "http://aspire-dashboard:18889";
