@@ -32,7 +32,7 @@ src/
   Auth/                          # Domain, Application, Infrastructure, Api
   Financeiro/                    # Domain, Application, Infrastructure, Api — NÃO usa Kafka (ver ADR 0011)
   Relatorios/                    # Domain, Application, Infrastructure, Api
-  Consolidacao/                  # Domain (Job/Etapa/Execucao), Application, Infrastructure, BackgroundServices (Worker)
+  Consolidacao/                  # Domain (eventos: SaldoDiarioConsolidadoIniciado/Concluido/ComFalhas), Application, Infrastructure, BackgroundServices (Worker)
   Gateway/                       # Gateway.Api (YARP) — 2 nós para Financeiro e Relatórios
 tests/
   UnitTests/                     # \\\\\\\*.Domain.Tests por módulo
@@ -56,11 +56,14 @@ consumia esse evento. Isso violava a ADR 0011 ("a disponibilidade de Financeiro 
 depender de outro módulo ou de infraestrutura de mensageria"). Agora Financeiro é uma API
 puramente request/response, sem MassTransit/Kafka — mais simples e mais alinhada à
 Especificação Mestre.
-2. **Consolidação foi redesenhada em torno de `Job` / `Etapa` / `Execução`**
-(`docs/c4/component.md`), com 3 eventos internos ao próprio módulo:
-`SaldoDiarioConsolidadoIniciado` → `...Concluido` ou `...ComFalhas`. Produtor e consumidor
-desses 3 eventos são sempre o mesmo módulo (`Consolidacao.Infrastructure`), então não existe
-mais necessidade de um projeto de contratos compartilhado.
+2. **Consolidação foi redesenhada para persistir eventos por tabela (uma tabela por evento)**
+(`docs/c4/component.md`): agora o domínio possui três tabelas de evento internas ao próprio
+módulo — `SaldoDiarioConsolidadoIniciado`, `SaldoDiarioConsolidadoConcluido` e
+`SaldoDiarioConsolidadoComFalhas` — em vez do modelo anterior baseado em agregados `Job`/
+`Etapa`/`Execução`. Cada evento tem um CorrelationId para rastreamento ponta a ponta; os
+produtor e consumidores desses eventos são o mesmo módulo (`Consolidacao.Infrastructure`),
+portanto o contrato de serialização (DTOs em `Consolidacao.Application.Events`) fica local ao
+módulo.
 3. **4 workers dentro de `Consolidacao.BackgroundServices`**:
 
    * `SaldoDiarioConsolidadoAgendadorHostedService` — todo dia, inicia a consolidação de D-1

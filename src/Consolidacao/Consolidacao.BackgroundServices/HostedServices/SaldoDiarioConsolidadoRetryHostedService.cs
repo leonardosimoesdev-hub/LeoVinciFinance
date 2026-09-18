@@ -44,13 +44,13 @@ public class SaldoDiarioConsolidadoRetryHostedService : BackgroundService
     private async Task ExecutarAsync(CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var jobRepository = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var eventRepository = scope.ServiceProvider.GetRequiredService<IConsolidacaoEventRepository>();
         var eventPublisher = scope.ServiceProvider.GetRequiredService<IConsolidacaoEventPublisher>();
 
-        IReadOnlyList<SaldoDiarioConsolidadoJob> elegiveis;
+        IReadOnlyList<Consolidacao.Domain.Entities.SaldoDiarioConsolidadoComFalhasEventoEntity> elegiveis;
         try
         {
-            elegiveis = await jobRepository.ObterElegiveisParaRetryAsync(cancellationToken);
+            elegiveis = await eventRepository.ObterComFalhasElegiveisParaRetryAsync(_options.LimiteTentativas, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -63,20 +63,22 @@ public class SaldoDiarioConsolidadoRetryHostedService : BackgroundService
             _logger.LogInformation("Reprocessador de falhas: nenhum Job elegível para retry neste ciclo.");
             return;
         }
+        _logger.LogInformation("Reprocessador de falhas: republicando {Quantidade} eventos ComFalhas elegíveis.", elegiveis.Count);
 
-        _logger.LogInformation("Reprocessador de falhas: republicando {Quantidade} Job(s) com falha.", elegiveis.Count);
-
-        foreach (var job in elegiveis)
+        // Agrupa por IdConta+Data e republica um evento Iniciado por grupo usando o CorrelationId mais recente
+        var porGrupo = elegiveis.GroupBy(e => (e.IdConta, e.Data));
+        foreach (var grupo in porGrupo)
         {
+            var ultimo = grupo.OrderByDescending(g => g.Tentativas).First();
             try
             {
                 await eventPublisher.PublicarIniciadoAsync(
-                    new SaldoDiarioConsolidadoIniciadoEvento(job.Id, job.IdConta, job.Data, job.CorrelationId),
+                    new Consolidacao.Application.Events.SaldoDiarioConsolidadoIniciadoEvento(Guid.Empty, ultimo.IdConta, ultimo.Data, ultimo.CorrelationId),
                     cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Falha ao republicar evento Iniciado para o Job {IdJob} durante retry.", job.Id);
+                _logger.LogError(ex, "Falha ao republicar evento Iniciado para IdConta={IdConta} Data={Data} durante retry.", grupo.Key.IdConta, grupo.Key.Data);
             }
         }
     }

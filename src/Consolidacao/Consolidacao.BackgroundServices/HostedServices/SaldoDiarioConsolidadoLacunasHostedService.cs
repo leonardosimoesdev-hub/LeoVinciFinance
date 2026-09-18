@@ -46,7 +46,7 @@ public class SaldoDiarioConsolidadoLacunasHostedService : BackgroundService
     {
         using var scope = _scopeFactory.CreateScope();
         var financeiroGateway = scope.ServiceProvider.GetRequiredService<IFinanceiroGateway>();
-        var jobRepository = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var eventRepository = scope.ServiceProvider.GetRequiredService<IConsolidacaoEventRepository>();
         var iniciarHandler = scope.ServiceProvider.GetRequiredService<ICommandHandler<IniciarConsolidacaoCommand, Result<bool>>>();
 
         var ontem = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
@@ -69,7 +69,7 @@ public class SaldoDiarioConsolidadoLacunasHostedService : BackgroundService
             IReadOnlyList<DateOnly> datasConcluidas;
             try
             {
-                datasConcluidas = await jobRepository.ObterDatasConcluidasAsync(conta.Id, cancellationToken);
+                datasConcluidas = await eventRepository.ObterDatasConcluidasAsync(conta.Id, cancellationToken);
             }
             catch (Exception ex)
             {

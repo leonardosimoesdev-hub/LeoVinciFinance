@@ -70,8 +70,8 @@ C4Component
         Component(consumerFalhas, "Consumer: ComFalhas", "MassTransit Consumer", "Registra erro, incrementa tentativas e decide recuperação ou notificação")
         Component(clients, "Clientes HTTP", "Refit + Polly", "IFinanceiroApiClient e IRelatoriosApiClient")
 
-        Component(domain, "Domain", "C# puro", "Job, SaldoDiarioConsolidadoJob, Evento, Status, Etapa e Execucao")
-        ComponentDb(db, "PostgreSQL", "EF Core", "Schema consolidacao: Job, Execucao e Etapa")
+        Component(domain, "Domain", "C# puro", "Eventos persistidos: SaldoDiarioConsolidadoIniciado, SaldoDiarioConsolidadoConcluido, SaldoDiarioConsolidadoComFalhas")
+        ComponentDb(db, "PostgreSQL", "EF Core", "Schema consolidacao: tabelas por evento (Iniciado, Concluido, ComFalhas)")
     }
 
     Rel(scheduler, kafka, "Publica Iniciado")
@@ -84,9 +84,9 @@ C4Component
 
     Rel(consumerIniciado, clients, "Consulta e envia saldo")
     Rel_Back(consumerIniciado, kafka, "Publica resultado")
-    Rel(consumerIniciado, domain, "Usa Job e Etapa")
-    Rel(consumerConcluido, domain, "Atualiza execução")
-    Rel(consumerFalhas, domain, "Atualiza tentativas")
+    Rel(consumerIniciado, domain, "Usa eventos Iniciado→Concluido/ComFalhas")
+    Rel(consumerConcluido, domain, "Persiste evento Concluido")
+    Rel(consumerFalhas, domain, "Persiste evento ComFalhas (incrementa tentativas)")
 
     Rel(consumerIniciado, db, "Persiste")
     Rel(consumerConcluido, db, "Persiste")

@@ -31,7 +31,8 @@ public static class ConsolidacaoModuleExtensions
 
         services.Configure<ConsolidacaoOptions>(configuration.GetSection(ConsolidacaoOptions.SectionName));
 
-        services.AddScoped<IJobRepository, JobRepository>();
+        // services.AddScoped<IJobRepository, JobRepository>(); // removido: uso do padrão baseado em eventos
+        services.AddScoped<IConsolidacaoEventRepository, ConsolidacaoEventRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IConsolidacaoEventPublisher, ConsolidacaoEventPublisher>();
 

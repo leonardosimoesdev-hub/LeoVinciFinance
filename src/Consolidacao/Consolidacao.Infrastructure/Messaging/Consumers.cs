@@ -53,7 +53,7 @@ public class SaldoDiarioConsolidadoConcluidoConsumer : IConsumer<SaldoDiarioCons
         using var _ = _logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = evento.CorrelationId, ["IdJob"] = evento.IdJob });
         _logger.LogInformation("Evento Concluído recebido para IdConta={IdConta} Data={Data} Saldo={Saldo}.", evento.IdConta, evento.Data, evento.Saldo);
 
-        await _handler.HandleAsync(new ProcessarConcluidoCommand(evento.IdJob, evento.Mensagem), context.CancellationToken);
+        await _handler.HandleAsync(new ProcessarConcluidoCommand(evento.IdConta, evento.Data, evento.Saldo, evento.CorrelationId, evento.Mensagem), context.CancellationToken);
     }
 }
 
@@ -76,6 +76,6 @@ public class SaldoDiarioConsolidadoComFalhasConsumer : IConsumer<SaldoDiarioCons
         using var _ = _logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = evento.CorrelationId, ["IdJob"] = evento.IdJob });
         _logger.LogWarning("Evento ComFalhas recebido para IdConta={IdConta} Data={Data}: {Mensagem}", evento.IdConta, evento.Data, evento.Mensagem);
 
-        await _handler.HandleAsync(new ProcessarComFalhasCommand(evento.IdJob, evento.Mensagem), context.CancellationToken);
+        await _handler.HandleAsync(new ProcessarComFalhasCommand(evento.IdConta, evento.Data, evento.CorrelationId, evento.Mensagem), context.CancellationToken);
     }
 }

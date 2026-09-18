@@ -18,20 +18,20 @@ public record IniciarConsolidacaoCommand(Guid IdConta, DateOnly Data) : ICommand
 
 public class IniciarConsolidacaoCommandHandler : ICommandHandler<IniciarConsolidacaoCommand, Result<bool>>
 {
-    private readonly IJobRepository _jobRepository;
+    private readonly IConsolidacaoEventRepository _eventRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConsolidacaoEventPublisher _eventPublisher;
     private readonly ConsolidacaoOptions _options;
     private readonly ILogger<IniciarConsolidacaoCommandHandler> _logger;
 
     public IniciarConsolidacaoCommandHandler(
-        IJobRepository jobRepository,
+        IConsolidacaoEventRepository eventRepository,
         IUnitOfWork unitOfWork,
         IConsolidacaoEventPublisher eventPublisher,
         IOptions<ConsolidacaoOptions> options,
         ILogger<IniciarConsolidacaoCommandHandler> logger)
     {
-        _jobRepository = jobRepository;
+        _eventRepository = eventRepository;
         _unitOfWork = unitOfWork;
         _eventPublisher = eventPublisher;
         _options = options.Value;
@@ -40,7 +40,7 @@ public class IniciarConsolidacaoCommandHandler : ICommandHandler<IniciarConsolid
 
     public async Task<Result<bool>> HandleAsync(IniciarConsolidacaoCommand command, CancellationToken cancellationToken)
     {
-        var existente = await _jobRepository.ObterPorContaEDataAsync(command.IdConta, command.Data, cancellationToken);
+        var existente = await _eventRepository.ObterIniciadoPorContaEDataAsync(command.IdConta, command.Data, cancellationToken);
 
         if (existente is not null)
         {
@@ -54,19 +54,19 @@ public class IniciarConsolidacaoCommandHandler : ICommandHandler<IniciarConsolid
             return Result<bool>.Success(false);
         }
 
-        var job = SaldoDiarioConsolidadoJob.Criar(command.IdConta, command.Data, _options.LimiteTentativas);
-        job.Iniciar();
+        var correlationId = Guid.NewGuid();
+        var iniciado = Consolidacao.Domain.Entities.SaldoDiarioConsolidadoIniciadoEventoEntity.Create(command.IdConta, command.Data, correlationId);
 
-        await _jobRepository.AddAsync(job, cancellationToken);
+        await _eventRepository.AddIniciadoAsync(iniciado, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _eventPublisher.PublicarIniciadoAsync(
-            new SaldoDiarioConsolidadoIniciadoEvento(job.Id, job.IdConta, job.Data, job.CorrelationId),
+            new Consolidacao.Application.Events.SaldoDiarioConsolidadoIniciadoEvento(Guid.Empty, command.IdConta, command.Data, correlationId),
             cancellationToken);
 
         _logger.LogInformation(
-            "Job de consolidação criado: IdJob={IdJob} IdConta={IdConta} Data={Data} CorrelationId={CorrelationId}.",
-            job.Id, job.IdConta, job.Data, job.CorrelationId);
+            "Evento Iniciado criado: IdConta={IdConta} Data={Data} CorrelationId={CorrelationId}.",
+            command.IdConta, command.Data, correlationId);
 
         return Result<bool>.Success(true);
     }

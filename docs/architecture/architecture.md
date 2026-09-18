@@ -43,13 +43,17 @@ Extraídos do `drawio` de domínio (ver diagrams\\LeoVinciFinance.Domain.drawio:
 
 ### 2.4 Consolidação (Agente)
 
-* **Job (abstrato)**: `Id`, `Nome`, `Etapas`, `Execucoes`, `LimiteTentativas`
-* **SaldoDiarioConsolidadoJob** (`Job`): `IdConta`
-* **Evento**: `Id`, `Nome` — valores: `SaldoDiarioConsolidadoIniciado`, `SaldoDiarioConsolidadoConcluido`, `SaldoDiarioConsolidadoComFalhas`
-* **Etapa**: `Id`, `Job`, `Evento`, `EventoAnterior`, `Ordem` — modela a evolução do job
-* **Execucao**: `Id`, `IdJob`, `IdEvento`, `DataHora`, `Mensagem`
-* Correlação de ponta a ponta via `CorrelationId`.
-* Composto por: `SaldoDiarioConsolidadoHostedService` (agendador diário, D‑1), consumidores MassTransit dos três eventos, `SaldoDiarioConsolidadoComFalhasHostedService` (retry de falhas) e `SaldoDiarioConsolidadoGapsHostedService` (recuperação de gaps históricos).
+O módulo de Consolidação foi modelado em torno de eventos persistidos por tabela — uma
+linha por evento — simplificando o desenho e facilitando a auditoria e o reprocessamento.
+
+* **Eventos persistidos (tabelas)**:
+  * `SaldoDiarioConsolidadoIniciado` — registro do início da consolidação para (IdConta, Data) com CorrelationId; chave única por (IdConta, Data).
+  * `SaldoDiarioConsolidadoConcluido` — registro de conclusão com Saldo e Mensagem; chave única por (IdConta, Data).
+  * `SaldoDiarioConsolidadoComFalhas` — registro de falhas transitórias com contador `Tentativas` que é incrementado a cada nova falha; usado para decisão de retry.
+
+* Correlação de ponta a ponta via `CorrelationId` em todos os eventos.
+
+* Composto por: `SaldoDiarioConsolidadoHostedService` (agendador diário, D‑1), consumidores MassTransit dos três eventos, `SaldoDiarioConsolidadoComFalhasHostedService` (retry de falhas) e `SaldoDiarioConsolidadoGapsHostedService` (detector de lacunas históricos).
 
 ## 3\. Regra de dependência (Clean Architecture)
 

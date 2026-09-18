@@ -1,25 +1,4 @@
-using Consolidacao.Domain.Entities;
-
 namespace Consolidacao.Application.Abstractions;
-
-public interface IJobRepository
-{
-    Task<SaldoDiarioConsolidadoJob?> ObterPorIdAsync(Guid idJob, CancellationToken cancellationToken);
-
-    Task<SaldoDiarioConsolidadoJob?> ObterPorContaEDataAsync(Guid idConta, DateOnly data, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Jobs com falha (última etapa = ComFalhas) que ainda não excederam o limite de
-    /// tentativas — candidatos a reprocessamento pelo SaldoDiarioConsolidadoComFalhasHostedService
-    /// (seção 29).
-    /// </summary>
-    Task<IReadOnlyList<SaldoDiarioConsolidadoJob>> ObterElegiveisParaRetryAsync(CancellationToken cancellationToken);
-
-    /// <summary>Datas já concluídas com sucesso para a conta — usado na detecção de lacunas (seção 30).</summary>
-    Task<IReadOnlyList<DateOnly>> ObterDatasConcluidasAsync(Guid idConta, CancellationToken cancellationToken);
-
-    Task AddAsync(SaldoDiarioConsolidadoJob job, CancellationToken cancellationToken);
-}
 
 public record ContaDto(Guid Id, Guid IdCliente);
 
