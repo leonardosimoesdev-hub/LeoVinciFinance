@@ -112,7 +112,7 @@ pontos de entrada:
 ## Stack Tecnológico
 
 - **Runtime / Linguagem**: .NET 10, C#
-- **Estilo arquitetural**: Clean Architecture + Modular Monolith orientado a domínios (Auth, Financeiro, Relatórios, Consolidação)
+- **Estilo arquitetural**: Clean Architecture + orientado a domínios (Auth, Financeiro, Relatórios, Consolidação)
 - **APIs**: ASP.NET Core Web API
 - **Gateway**: YARP (reverse proxy, round-robin entre instâncias)
 - **Persistência**: PostgreSQL + Entity Framework Core 10 (um schema por módulo)
